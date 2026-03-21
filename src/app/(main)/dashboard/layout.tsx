@@ -18,9 +18,9 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Tableau de bord" },
-  { href: "/dashboard/profil", icon: User, label: "Profil entreprise" },
+  { href: "/dashboard/profil", icon: User, label: "Profil" },
   { href: "/dashboard/services", icon: Wrench, label: "Services" },
-  { href: "/dashboard/avis", icon: Star, label: "Avis clients" },
+  { href: "/dashboard/avis", icon: Star, label: "Avis" },
 ];
 
 export default function DashboardLayout({
@@ -37,33 +37,39 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
+    <div className="flex bg-white min-h-screen">
+      {/* Sidebar Desktop & Mobile */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-dark text-white flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static",
+          "fixed inset-y-0 left-0 z-50 w-56 bg-gray-50 border-r border-gray-200 flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static h-screen shrink-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2 px-6 h-16 border-b border-white/10">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo to-cyan flex items-center justify-center">
-            <Building2 className="w-4 h-4 text-white" />
+        <div className="flex flex-col">
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 lg:hidden">
+            <span className="text-sm font-semibold text-gray-900">Menu</span>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1.5 rounded-md hover:bg-gray-200 transition-colors text-gray-500"
+              aria-label="Fermer le menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <span className="text-base font-bold font-[family-name:var(--font-display)]">
-            Biz<span className="text-indigo">Connect</span>
-          </span>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="ml-auto lg:hidden p-1 rounded-lg hover:bg-white/10 transition-colors"
-            aria-label="Fermer le menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          {/* Desktop Branding */}
+          <div className="hidden lg:flex h-14 items-center px-4 border-b border-gray-200 shrink-0">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
+                <Building2 className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="font-semibold text-gray-900 tracking-tight text-sm">BizConnect</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1" aria-label="Dashboard navigation">
+        <div className="flex-1 flex flex-col py-4 px-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -72,26 +78,25 @@ export default function DashboardLayout({
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                  "flex items-center gap-2.5 px-3 py-2 text-sm rounded-md transition-colors",
                   isActive
-                    ? "bg-indigo text-white shadow-lg shadow-indigo/25"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "text-blue-700 bg-white border border-gray-200 font-medium shadow-sm"
+                    : "text-gray-600 hover:bg-white hover:text-gray-900 border border-transparent"
                 )}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-4 h-4 shrink-0" strokeWidth={1.75} />
                 {item.label}
               </Link>
             );
           })}
-        </nav>
+        </div>
 
-        {/* Logout */}
-        <div className="px-3 py-4 border-t border-white/10">
+        <div className="p-3 border-t border-gray-200">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 w-full transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 w-full transition-colors border border-transparent"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.75} />
             Déconnexion
           </button>
         </div>
@@ -107,23 +112,21 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        <header className="h-16 border-b border-border bg-background flex items-center px-4 lg:px-8 gap-4">
+        <header className="h-14 border-b border-gray-200 bg-white flex items-center px-4 gap-3 lg:hidden shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+            className="p-1.5 -ml-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-600"
             aria-label="Ouvrir le menu"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-semibold font-[family-name:var(--font-display)] text-foreground">
-            Dashboard
-          </h1>
+          <span className="text-sm font-semibold text-gray-900">Tableau de bord</span>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 p-4 lg:p-8 bg-muted/30 overflow-y-auto">
-          {children}
+        <main className="flex-1 p-4 lg:p-8 bg-gray-50 overflow-y-auto">
+          <div className="max-w-5xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

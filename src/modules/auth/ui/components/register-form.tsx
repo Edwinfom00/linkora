@@ -5,11 +5,6 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  User,
   Loader2,
   Building2,
   UserCircle,
@@ -19,14 +14,10 @@ import {
 import { toast } from "sonner";
 import { registerSchema, type RegisterInput } from "@/lib/validations";
 import { signUp, signIn } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export function RegisterForm() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -36,24 +27,35 @@ export function RegisterForm() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<RegisterInput>({
+    trigger
+  } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       role: "client",
     },
+    mode: "onTouched"
   });
 
   const selectedRole = watch("role");
 
-  const onSubmit = async (data: RegisterInput) => {
+  const handleNextStep = async () => {
+    const isStep1Valid = await trigger(["name", "email", "password"]);
+    if (isStep1Valid) {
+      setStep(2);
+    }
+  }
+
+  const onSubmit = async (data: any) => {
     setIsLoading(true);
     try {
-      const result = await signUp.email({
+      // Cast the payload to any to bypass the custom 'role' field issue with better-auth TS types
+      const payload: any = {
         name: data.name,
         email: data.email,
         password: data.password,
         role: data.role,
-      });
+      };
+      const result = await signUp.email(payload);
 
       if (result.error) {
         toast.error(result.error.message || "Erreur lors de l'inscription");
@@ -78,218 +80,173 @@ export function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {step === 1 && (
-        <>
-          {/* Name */}
-          <div className="space-y-2">
-            <Label htmlFor="register-name" className="text-sm font-medium">
-              Nom complet
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {step === 1 && (
+          <>
+            {/* Name */}
+            <div className="space-y-1.5">
+              <label htmlFor="register-name" className="text-sm font-medium text-gray-900">
+                Nom complet
+              </label>
+              <input
                 id="register-name"
                 type="text"
                 placeholder="Jean Kamga"
-                className="pl-10 h-12 rounded-xl border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-indigo/20 focus:border-indigo transition-all"
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 {...register("name")}
               />
+              {errors.name && (
+                <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>
+              )}
             </div>
-            {errors.name && (
-              <p className="text-xs text-red-500">{errors.name.message}</p>
-            )}
-          </div>
 
-          {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="register-email" className="text-sm font-medium">
-              Adresse email
-            </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="register-email" className="text-sm font-medium text-gray-900">
+                Adresse email
+              </label>
+              <input
                 id="register-email"
                 type="email"
                 placeholder="votre@email.com"
-                className="pl-10 h-12 rounded-xl border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-indigo/20 focus:border-indigo transition-all"
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 {...register("email")}
               />
+              {errors.email && (
+                <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>
+              )}
             </div>
-            {errors.email && (
-              <p className="text-xs text-red-500">{errors.email.message}</p>
-            )}
-          </div>
 
-          {/* Password */}
-          <div className="space-y-2">
-            <Label htmlFor="register-password" className="text-sm font-medium">
-              Mot de passe
-            </Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label htmlFor="register-password" className="text-sm font-medium text-gray-900">
+                Mot de passe
+              </label>
+              <input
                 id="register-password"
-                type={showPassword ? "text" : "password"}
+                type="password"
                 placeholder="••••••••"
-                className="pl-10 pr-10 h-12 rounded-xl border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-indigo/20 focus:border-indigo transition-all"
+                className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 {...register("password")}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={showPassword ? "Masquer" : "Afficher"}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-xs text-red-500">{errors.password.message}</p>
-            )}
-          </div>
-
-          <Button
-            type="button"
-            onClick={() => setStep(2)}
-            className="w-full h-12 rounded-xl bg-indigo hover:bg-indigo/90 text-white font-semibold shadow-lg shadow-indigo/25 hover:shadow-indigo/40 transition-all gap-2"
-          >
-            Continuer
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </>
-      )}
-
-      {step === 2 && (
-        <>
-          {/* Role Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">
-              Je suis...
-            </Label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setValue("role", "client")}
-                className={cn(
-                  "flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-300",
-                  selectedRole === "client"
-                    ? "border-indigo bg-indigo/5 shadow-lg shadow-indigo/10"
-                    : "border-slate-200 dark:border-white/10 hover:border-indigo/30"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors",
-                    selectedRole === "client"
-                      ? "bg-indigo/10"
-                      : "bg-slate-100 dark:bg-white/5"
-                  )}
-                >
-                  <UserCircle
-                    className={cn(
-                      "w-7 h-7 transition-colors",
-                      selectedRole === "client"
-                        ? "text-indigo"
-                        : "text-muted-foreground"
-                    )}
-                  />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Un client</p>
-                  <p className="text-xs text-muted-foreground">
-                    Je cherche des services
-                  </p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setValue("role", "entreprise")}
-                className={cn(
-                  "flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-300",
-                  selectedRole === "entreprise"
-                    ? "border-cyan bg-cyan/5 shadow-lg shadow-cyan/10"
-                    : "border-slate-200 dark:border-white/10 hover:border-cyan/30"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors",
-                    selectedRole === "entreprise"
-                      ? "bg-cyan/10"
-                      : "bg-slate-100 dark:bg-white/5"
-                  )}
-                >
-                  <Building2
-                    className={cn(
-                      "w-7 h-7 transition-colors",
-                      selectedRole === "entreprise"
-                        ? "text-cyan"
-                        : "text-muted-foreground"
-                    )}
-                  />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Une entreprise</p>
-                  <p className="text-xs text-muted-foreground">
-                    Je propose des services
-                  </p>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setStep(1)}
-              className="h-12 rounded-xl border-slate-200 dark:border-white/10 px-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 h-12 rounded-xl bg-indigo hover:bg-indigo/90 text-white font-semibold shadow-lg shadow-indigo/25 hover:shadow-indigo/40 transition-all"
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                "Créer mon compte"
+              {errors.password && (
+                <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>
               )}
-            </Button>
-          </div>
-        </>
-      )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="w-full flex justify-center items-center gap-2 h-9 px-4 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors mt-2"
+            >
+              Continuer
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-900">
+                Je suis...
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Client Role */}
+                <button
+                  type="button"
+                  onClick={() => setValue("role", "client")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-md border text-center transition-colors focus:outline-none",
+                    selectedRole === "client"
+                      ? "bg-blue-50 border-blue-600 shadow-sm"
+                      : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-md flex items-center justify-center",
+                    selectedRole === "client" ? "bg-white border border-blue-100" : "bg-gray-100 border border-gray-200"
+                  )}>
+                    <UserCircle className={cn("w-5 h-5", selectedRole === "client" ? "text-blue-600" : "text-gray-500")} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Un client</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Je cherche des services</p>
+                  </div>
+                </button>
+
+                {/* Entreprise Role */}
+                <button
+                  type="button"
+                  onClick={() => setValue("role", "entreprise")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-md border text-center transition-colors focus:outline-none",
+                    selectedRole === "entreprise"
+                      ? "bg-blue-50 border-blue-600 shadow-sm"
+                      : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-md flex items-center justify-center",
+                    selectedRole === "entreprise" ? "bg-white border border-blue-100" : "bg-gray-100 border border-gray-200"
+                  )}>
+                    <Building2 className={cn("w-5 h-5", selectedRole === "entreprise" ? "text-blue-600" : "text-gray-500")} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Une entreprise</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Je propose des services</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="flex items-center justify-center w-10 h-9 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+                aria-label="Retour"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 flex justify-center items-center h-9 px-4 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Créer mon compte"
+                )}
+              </button>
+            </div>
+          </>
+        )}
+      </form>
 
       {step === 1 && (
         <>
           {/* Divider */}
-          <div className="relative my-6">
+          <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200 dark:border-white/10" />
+              <div className="w-full border-t border-gray-200" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white dark:bg-dark px-4 text-muted-foreground">
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-2 text-gray-400">
                 ou continuer avec
               </span>
             </div>
           </div>
 
           {/* Google */}
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={handleGoogleRegister}
-            className="w-full h-12 rounded-xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 font-medium gap-3 transition-all"
+            className="w-full flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
                 fill="#4285F4"
@@ -307,10 +264,10 @@ export function RegisterForm() {
                 fill="#EA4335"
               />
             </svg>
-            Continuer avec Google
-          </Button>
+            Google
+          </button>
         </>
       )}
-    </form>
+    </div>
   );
 }

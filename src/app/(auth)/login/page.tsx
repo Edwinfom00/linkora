@@ -13,22 +13,23 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel — Gradient */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden mesh-gradient grain-overlay">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900 border-r border-slate-800">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
         <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
-          <Link href="/" className="flex items-center gap-2" aria-label="Retour à l'accueil">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+          <Link href="/" className="flex items-center gap-2 w-max" aria-label="Retour à l'accueil">
+            <div className="w-10 h-10 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
               <Building2 className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-display)]">
+            <span className="text-xl font-semibold tracking-tight">
               BizConnect
             </span>
           </Link>
 
           <div className="space-y-6">
-            <h1 className="text-4xl xl:text-5xl font-bold font-[family-name:var(--font-display)] leading-tight">
+            <h1 className="text-4xl xl:text-5xl font-semibold leading-tight tracking-tight">
               Connectez-vous à
               <br />
-              <span className="bg-gradient-to-r from-cyan to-emerald bg-clip-text text-transparent">
+              <span className="text-blue-400">
                 votre espace
               </span>
             </h1>
@@ -39,17 +40,17 @@ export default function LoginPage() {
 
             {/* Stats */}
             <div className="flex gap-8 pt-4">
-              <div className="glass rounded-xl px-5 py-3">
-                <p className="text-2xl font-bold font-mono">500+</p>
-                <p className="text-xs text-white/60">Entreprises</p>
+              <div className="bg-white/5 border border-white/10 rounded-md px-5 py-4 backdrop-blur-sm">
+                <p className="text-2xl font-semibold tracking-tight">500+</p>
+                <p className="text-xs text-white/60 mt-1 uppercase tracking-wider">Entreprises</p>
               </div>
-              <div className="glass rounded-xl px-5 py-3">
-                <p className="text-2xl font-bold font-mono">10K+</p>
-                <p className="text-xs text-white/60">Clients</p>
+              <div className="bg-white/5 border border-white/10 rounded-md px-5 py-4 backdrop-blur-sm">
+                <p className="text-2xl font-semibold tracking-tight">10K+</p>
+                <p className="text-xs text-white/60 mt-1 uppercase tracking-wider">Clients</p>
               </div>
-              <div className="glass rounded-xl px-5 py-3">
-                <p className="text-2xl font-bold font-mono">4.8★</p>
-                <p className="text-xs text-white/60">Note moyenne</p>
+              <div className="bg-white/5 border border-white/10 rounded-md px-5 py-4 backdrop-blur-sm">
+                <p className="text-2xl font-semibold tracking-tight">4.8★</p>
+                <p className="text-xs text-white/60 mt-1 uppercase tracking-wider">Note moyenne</p>
               </div>
             </div>
           </div>
@@ -58,45 +59,39 @@ export default function LoginPage() {
             © {new Date().getFullYear()} BizConnect Cameroun
           </p>
         </div>
-
-        {/* Decorative particles */}
-        <div className="particle w-3 h-3 top-1/4 left-1/4" style={{ animationDelay: "0s" }} />
-        <div className="particle w-2 h-2 top-1/3 right-1/3" style={{ animationDelay: "2s" }} />
-        <div className="particle w-4 h-4 bottom-1/4 left-1/3" style={{ animationDelay: "4s" }} />
-        <div className="particle w-2 h-2 top-2/3 right-1/4" style={{ animationDelay: "1s" }} />
       </div>
 
       {/* Right Panel — Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-white dark:bg-dark">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-white">
+        <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo to-cyan flex items-center justify-center">
+            <div className="w-9 h-9 rounded-md bg-blue-600 flex items-center justify-center">
               <Building2 className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-bold font-[family-name:var(--font-display)]">
-              Biz<span className="text-indigo">Connect</span>
+            <span className="text-lg font-bold text-gray-900 tracking-tight">
+              BizConnect
             </span>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold font-[family-name:var(--font-display)] text-foreground">
-              Bon retour ! 👋
+            <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+              Bon retour !
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-gray-500 mt-1.5">
               Connectez-vous pour accéder à votre compte
             </p>
           </div>
 
           <LoginForm />
 
-          <p className="text-sm text-center text-muted-foreground mt-8">
+          <p className="text-sm text-center text-gray-500 mt-8">
             Pas encore de compte ?{" "}
             <Link
               href="/register"
-              className="font-semibold text-indigo hover:text-indigo/80 transition-colors"
+              className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
             >
-              S&apos;inscrire gratuitement
+              S&apos;inscrire
             </Link>
           </p>
         </div>

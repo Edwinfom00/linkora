@@ -17,10 +17,7 @@ export default async function ServicesPage() {
   const services = await getMyServices();
 
   return (
-    <div className="max-w-3xl">
-      <h2 className="text-2xl font-bold font-[family-name:var(--font-display)] text-foreground mb-6">
-        Mes services
-      </h2>
+    <div className="w-full">
       <ServicesView initialServices={services} />
     </div>
   );

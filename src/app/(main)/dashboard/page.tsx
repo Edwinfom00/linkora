@@ -7,11 +7,11 @@ import {
   MessageSquare,
   Star,
   TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { getMyEntreprise } from "@/modules/entreprises/server/actions";
 import { getDashboardStats, getRecentContacts, getRecentAvis } from "@/modules/dashboard/server/actions";
 import { StarRating } from "@/components/shared/star-rating";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -25,19 +25,19 @@ export default async function DashboardPage() {
   const entreprise = await getMyEntreprise();
   if (!entreprise) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-16">
-        <div className="w-20 h-20 rounded-xl bg-indigo/10 flex items-center justify-center mx-auto mb-4">
-          <TrendingUp className="w-10 h-10 text-indigo" />
+      <div className="max-w-md mx-auto text-center py-20 bg-white border border-gray-200 rounded-md shadow-sm mt-10 p-8">
+        <div className="w-12 h-12 bg-gray-50 border border-gray-100 rounded-md flex items-center justify-center mx-auto mb-4">
+          <TrendingUp className="w-6 h-6 text-gray-400" />
         </div>
-        <h2 className="text-xl font-bold font-[family-name:var(--font-display)] mb-2">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">
           Configurez votre entreprise
         </h2>
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
           Complétez votre profil entreprise pour accéder au tableau de bord.
         </p>
         <a
           href="/dashboard/profil"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo text-white font-semibold hover:bg-indigo/90 transition-colors shadow-lg shadow-indigo/25"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
         >
           Créer mon profil
         </a>
@@ -56,40 +56,39 @@ export default async function DashboardPage() {
       label: "Total vues",
       value: stats.totalVues,
       icon: Eye,
-      color: "#6366F1",
-      bg: "bg-indigo/10",
+      variation: "+12%",
+      isPositive: true,
     },
     {
       label: "Contacts",
       value: stats.totalContacts,
       icon: MessageSquare,
-      color: "#06B6D4",
-      bg: "bg-cyan/10",
+      variation: "+5%",
+      isPositive: true,
     },
     {
       label: "Note moyenne",
       value: stats.noteMoyenne > 0 ? stats.noteMoyenne.toFixed(1) : "—",
       icon: Star,
-      color: "#F59E0B",
-      bg: "bg-amber/10",
+      variation: "+0.2",
+      isPositive: true,
     },
     {
       label: "Total avis",
       value: stats.totalAvis,
       icon: TrendingUp,
-      color: "#10B981",
-      bg: "bg-emerald/10",
+      variation: "+2",
+      isPositive: true,
     },
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Welcome */}
+    <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold font-[family-name:var(--font-display)] text-foreground">
-          Bonjour, {entreprise.nom} 👋
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+          Bonjour, {entreprise.nom}
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
           Voici un aperçu de votre activité
         </p>
       </div>
@@ -99,36 +98,37 @@ export default async function DashboardPage() {
         {statCards.map((stat) => (
           <div
             key={stat.label}
-            className="p-6 rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-shadow"
+            className="bg-white border border-gray-200 rounded-md p-4 shadow-sm"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}
-              >
-                <stat.icon
-                  className="w-6 h-6"
-                  style={{ color: stat.color }}
-                />
-              </div>
+            <div className="w-8 h-8 bg-blue-50 rounded-md flex items-center justify-center">
+              <stat.icon className="w-4 h-4 text-blue-600" strokeWidth={2} />
             </div>
-            <p className="text-3xl font-bold font-mono text-foreground animate-count-up">
+            <p className="text-2xl font-semibold text-gray-900 mt-3">
               {stat.value}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+            <div className="flex items-center justify-between mt-0.5">
+              <p className="text-xs text-gray-500">{stat.label}</p>
+              <div className={`flex items-center gap-1 text-xs font-medium ${stat.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                {stat.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {stat.variation}
+              </div>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Two columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Contacts */}
-        <div className="p-6 rounded-xl bg-card border border-border shadow-sm">
-          <h3 className="text-base font-semibold font-[family-name:var(--font-display)] text-foreground mb-4">
-            Contacts récents
-          </h3>
-          {recentContacts.length > 0 ? (
-            <div className="space-y-3">
-              {recentContacts.map((contact) => {
+      {/* Sections Recent */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Contacts récents */}
+        <div className="bg-white border border-gray-200 rounded-md shadow-sm">
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">Contacts récents</h3>
+            <a href="/messages" className="text-xs text-blue-600 hover:text-blue-700 font-medium">Tout voir</a>
+          </div>
+          
+          <div className="divide-y divide-gray-50">
+            {recentContacts.length > 0 ? (
+              recentContacts.map((contact) => {
                 const initials = contact.clientName
                   ? contact.clientName
                       .split(" ")
@@ -141,66 +141,76 @@ export default async function DashboardPage() {
                 return (
                   <div
                     key={contact.id}
-                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/50 transition-colors"
+                    className="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors"
                   >
-                    <Avatar className="w-9 h-9">
-                      <AvatarFallback className="bg-gradient-to-br from-indigo/20 to-cyan/20 text-indigo text-xs font-semibold">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="w-8 h-8 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center font-semibold text-gray-600 text-xs flex-shrink-0">
+                      {initials}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
+                      <p className="text-sm font-medium text-gray-900 truncate">
                         {contact.clientName || "Anonyme"}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(contact.lastMessageAt).toLocaleDateString(
-                          "fr-FR",
-                          { day: "numeric", month: "short" }
-                        )}
-                      </p>
+                    </div>
+                    <p className="text-xs text-gray-400 whitespace-nowrap">
+                      {new Date(contact.lastMessageAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="px-4 py-8 text-center bg-gray-50/50">
+                <p className="text-sm text-gray-500">Aucun contact récent</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Avis récents */}
+        <div className="bg-white border border-gray-200 rounded-md shadow-sm">
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">Avis récents</h3>
+            <a href="/dashboard/avis" className="text-xs text-blue-600 hover:text-blue-700 font-medium">Tout voir</a>
+          </div>
+
+          <div className="divide-y divide-gray-50">
+            {recentAvis.length > 0 ? (
+              recentAvis.map((review) => {
+                const initials = review.clientName
+                  ? review.clientName
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)
+                  : "??";
+
+                return (
+                  <div key={review.id} className="px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors">
+                    <div className="w-8 h-8 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center font-semibold text-gray-600 text-xs flex-shrink-0">
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {review.clientName || "Anonyme"}
+                        </p>
+                        <StarRating rating={review.note} size="sm" />
+                      </div>
+                      {review.commentaire && (
+                        <p className="text-xs text-gray-600 line-clamp-2">
+                          {review.commentaire}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              Aucun contact récent
-            </p>
-          )}
-        </div>
-
-        {/* Recent Reviews */}
-        <div className="p-6 rounded-xl bg-card border border-border shadow-sm">
-          <h3 className="text-base font-semibold font-[family-name:var(--font-display)] text-foreground mb-4">
-            Avis récents
-          </h3>
-          {recentAvis.length > 0 ? (
-            <div className="space-y-3">
-              {recentAvis.map((review) => (
-                <div
-                  key={review.id}
-                  className="p-3 rounded-xl border border-border"
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="text-sm font-medium text-foreground">
-                      {review.clientName || "Anonyme"}
-                    </p>
-                    <StarRating rating={review.note} size="sm" />
-                  </div>
-                  {review.commentaire && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {review.commentaire}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              Aucun avis récent
-            </p>
-          )}
+              })
+            ) : (
+              <div className="px-4 py-8 text-center bg-gray-50/50">
+                <p className="text-sm text-gray-500">Aucun avis récent</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

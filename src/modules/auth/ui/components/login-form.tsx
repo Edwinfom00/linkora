@@ -4,17 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 import { signIn } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -56,98 +52,81 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Email */}
-      <div className="space-y-2">
-        <Label htmlFor="login-email" className="text-sm font-medium">
-          Adresse email
-        </Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Email */}
+        <div className="space-y-1.5">
+          <label htmlFor="login-email" className="text-sm font-medium text-gray-900">
+            Adresse email
+          </label>
+          <input
             id="login-email"
             type="email"
             placeholder="votre@email.com"
-            className="pl-10 h-12 rounded-xl border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-indigo/20 focus:border-indigo transition-all"
+            className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             {...register("email")}
             aria-describedby={errors.email ? "email-error" : undefined}
           />
+          {errors.email && (
+            <p id="email-error" className="text-xs text-red-600 mt-1">
+              {errors.email.message}
+            </p>
+          )}
         </div>
-        {errors.email && (
-          <p id="email-error" className="text-xs text-red-500">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
 
-      {/* Password */}
-      <div className="space-y-2">
-        <Label htmlFor="login-password" className="text-sm font-medium">
-          Mot de passe
-        </Label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
+        {/* Password */}
+        <div className="space-y-1.5">
+          <label htmlFor="login-password" className="text-sm font-medium text-gray-900">
+            Mot de passe
+          </label>
+          <input
             id="login-password"
-            type={showPassword ? "text" : "password"}
+            type="password"
             placeholder="••••••••"
-            className="pl-10 pr-10 h-12 rounded-xl border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-indigo/20 focus:border-indigo transition-all"
+            className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             {...register("password")}
             aria-describedby={errors.password ? "password-error" : undefined}
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-          >
-            {showPassword ? (
-              <EyeOff className="w-4 h-4" />
-            ) : (
-              <Eye className="w-4 h-4" />
-            )}
-          </button>
+          {errors.password && (
+            <p id="password-error" className="text-xs text-red-600 mt-1">
+              {errors.password.message}
+            </p>
+          )}
         </div>
-        {errors.password && (
-          <p id="password-error" className="text-xs text-red-500">
-            {errors.password.message}
-          </p>
-        )}
-      </div>
 
-      {/* Submit */}
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full h-12 rounded-xl bg-indigo hover:bg-indigo/90 text-white font-semibold shadow-lg shadow-indigo/25 hover:shadow-indigo/40 transition-all"
-      >
-        {isLoading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
-        ) : (
-          "Se connecter"
-        )}
-      </Button>
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full flex justify-center items-center h-9 px-4 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50 mt-2"
+        >
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            "Se connecter"
+          )}
+        </button>
+      </form>
 
       {/* Divider */}
-      <div className="relative my-6">
+      <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200 dark:border-white/10" />
+          <div className="w-full border-t border-gray-200" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white dark:bg-dark px-4 text-muted-foreground">
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-white px-2 text-gray-400">
             ou continuer avec
           </span>
         </div>
       </div>
 
       {/* Google */}
-      <Button
+      <button
         type="button"
-        variant="outline"
         onClick={handleGoogleLogin}
-        className="w-full h-12 rounded-xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 font-medium gap-3 transition-all"
+        className="w-full flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors"
       >
-        <svg className="w-5 h-5" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
             fill="#4285F4"
@@ -165,8 +144,8 @@ export function LoginForm() {
             fill="#EA4335"
           />
         </svg>
-        Continuer avec Google
-      </Button>
-    </form>
+        Google
+      </button>
+    </div>
   );
 }

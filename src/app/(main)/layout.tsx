@@ -1,16 +1,9 @@
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
+import { ClientLayoutWrapper } from "@/components/layout/client-layout-wrapper";
 
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      <Navbar />
-      <main className="flex-1">{children}</main>
-      <Footer />
-    </>
-  );
+  return <ClientLayoutWrapper>{children}</ClientLayoutWrapper>;
 }

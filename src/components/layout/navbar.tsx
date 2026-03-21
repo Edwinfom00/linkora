@@ -8,25 +8,16 @@ import {
   MessageSquare,
   LayoutDashboard,
   LogOut,
-  User,
   ChevronDown,
   Building2,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const { data: session, isPending } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -44,189 +35,202 @@ export function Navbar() {
     : "BC";
 
   return (
-    <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 dark:bg-dark/80 border-b border-slate-100 dark:border-white/10">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Navigation principale">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
+    <header className="sticky top-0 z-50 w-full h-14 bg-white border-b border-gray-200">
+      <nav className="h-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-between" aria-label="Navigation principale">
+        
+        {/* Left side: Logo + Navigation Links */}
+        <div className="flex items-center gap-6">
           <Link
             href="/"
             className="flex items-center gap-2 group"
             aria-label="BizConnect Cameroun — Accueil"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo to-cyan flex items-center justify-center shadow-lg shadow-indigo/25 group-hover:shadow-indigo/40 transition-shadow">
-              <Building2 className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center transition-colors hover:bg-blue-700">
+              <Building2 className="w-4 h-4 text-white" />
             </div>
-            <div className="hidden sm:block">
-              <span className="text-lg font-bold font-[family-name:var(--font-display)] text-foreground">
-                Biz<span className="text-indigo">Connect</span>
-              </span>
-              <span className="block text-[10px] -mt-1 text-muted-foreground tracking-wider uppercase">
-                Cameroun
-              </span>
-            </div>
+            <span className="hidden sm:inline-block text-base font-bold text-gray-900 tracking-tight">
+              BizConnect
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             <Link
               href="/"
-              className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               Accueil
             </Link>
             <Link
               href="/entreprises"
-              className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors"
             >
               Entreprises
             </Link>
             {user && (
               <Link
                 href="/messages"
-                className="relative px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5"
               >
-                <MessageSquare className="w-4 h-4 inline mr-1.5" />
+                <MessageSquare className="w-4 h-4" />
                 Messages
               </Link>
             )}
-          </div>
-
-          {/* Right side */}
-          <div className="flex items-center gap-3">
-            {isPending ? (
-              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-            ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus:outline-none"
-                    aria-label="Menu utilisateur"
-                  >
-                    <Avatar className="w-8 h-8 border-2 border-indigo/20">
-                      <AvatarFallback className="bg-gradient-to-br from-indigo to-cyan text-white text-xs font-semibold">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:block text-sm font-medium text-foreground max-w-[120px] truncate">
-                      {user.name}
-                    </span>
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5">
-                  <div className="px-3 py-2 mb-1">
-                    <p className="text-sm font-medium text-foreground">{user.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  {(user as { role?: string }).role === "entreprise" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="gap-2 rounded-lg cursor-pointer">
-                        <LayoutDashboard className="w-4 h-4" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  {(user as { role?: string }).role === "admin" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="gap-2 rounded-lg cursor-pointer">
-                        <LayoutDashboard className="w-4 h-4" />
-                        Administration
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem asChild>
-                    <Link href="/messages" className="gap-2 rounded-lg cursor-pointer">
-                      <MessageSquare className="w-4 h-4" />
-                      Messages
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleSignOut}
-                    className="gap-2 rounded-lg cursor-pointer text-red-500 focus:text-red-500"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Déconnexion
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  className="hidden sm:inline-flex rounded-xl border-slate-200 dark:border-white/10 text-sm"
-                >
-                  <Link href="/login">Connexion</Link>
-                </Button>
-                <Button
-                  asChild
-                  className="rounded-xl bg-indigo hover:bg-indigo/90 text-white text-sm shadow-lg shadow-indigo/25"
-                >
-                  <Link href="/register">S&apos;inscrire</Link>
-                </Button>
-              </div>
-            )}
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-              aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <div
-          className={cn(
-            "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-            mobileMenuOpen ? "max-h-64 pb-4" : "max-h-0"
-          )}
-        >
-          <div className="flex flex-col gap-1 pt-2 border-t border-slate-100 dark:border-white/10">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-            >
-              Accueil
-            </Link>
-            <Link
-              href="/entreprises"
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-            >
-              Entreprises
-            </Link>
-            {user && (
-              <Link
-                href="/messages"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+        {/* Right side: Auth / User actions */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {isPending ? (
+            <div className="w-8 h-8 rounded-md bg-gray-200 animate-pulse" />
+          ) : user ? (
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+                aria-haspopup="true"
+                aria-expanded={dropdownOpen}
               >
-                Messages
-              </Link>
-            )}
-            {!user && (
+                <div className="w-8 h-8 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center font-medium text-gray-700 text-xs shrink-0">
+                  {initials}
+                </div>
+                <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate">
+                  {user.name}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              </button>
+
+              {dropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1 w-56 bg-white rounded-md border border-gray-200 shadow-md py-1 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+
+                    <div className="py-1 border-b border-gray-100">
+                      {(user as { role?: string }).role === "entreprise" && (
+                        <Link
+                          href="/dashboard"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          Dashboard
+                        </Link>
+                      )}
+                      {(user as { role?: string }).role === "admin" && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          Administration
+                        </Link>
+                      )}
+                      <Link
+                        href="/messages"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Messages
+                      </Link>
+                    </div>
+
+                    <div className="py-1">
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:outline-none transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Déconnexion
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2.5 text-sm font-medium text-indigo hover:text-indigo/80 rounded-lg hover:bg-indigo/5 transition-colors sm:hidden"
+                className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
               >
                 Connexion
               </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                S'inscrire
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-1.5 rounded-md hover:bg-gray-50 text-gray-600 transition-colors focus:outline-none"
+            aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          >
+            {mobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
             )}
-          </div>
+          </button>
         </div>
+
       </nav>
+
+      {/* Mobile Navigation Dropdown */}
+      <div
+        className={cn(
+          "md:hidden absolute top-14 left-0 w-full bg-white border-b border-gray-200 overflow-hidden transition-all duration-200 ease-in-out shadow-sm",
+          mobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0 border-transparent"
+        )}
+      >
+        <div className="px-4 py-2 space-y-1">
+          <Link
+            href="/"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+          >
+            Accueil
+          </Link>
+          <Link
+            href="/entreprises"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+          >
+            Entreprises
+          </Link>
+          {user && (
+            <Link
+              href="/messages"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+            >
+              Messages
+            </Link>
+          )}
+          {!user && (
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block sm:hidden px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+            >
+              Connexion
+            </Link>
+          )}
+        </div>
+      </div>
     </header>
   );
 }

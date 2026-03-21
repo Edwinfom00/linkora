@@ -11,8 +11,6 @@ import {
   Clock,
   Star,
 } from "lucide-react";
-import { StarRating } from "@/components/shared/star-rating";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AvisSection } from "@/modules/avis/ui/components/avis-section";
 
@@ -65,172 +63,123 @@ interface EntrepriseProfileViewProps {
 export function EntrepriseProfileView({
   entreprise,
 }: EntrepriseProfileViewProps) {
-  const coverBg = entreprise.coverUrl
-    ? `url(${entreprise.coverUrl})`
-    : "linear-gradient(135deg, #312e81, #164e63, #065f46)";
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Cover Photo Hero */}
-      <div className="relative h-[280px] md:h-[360px]">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: coverBg }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-        {/* Stats overlay */}
-        <div className="absolute top-4 right-4 flex gap-2 z-10">
-          {[
-            { label: "Avis", value: entreprise.stats.totalAvis },
-            {
-              label: "Note",
-              value:
-                entreprise.stats.noteMoyenne > 0
-                  ? entreprise.stats.noteMoyenne.toFixed(1) + "★"
-                  : "N/A",
-            },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="glass rounded-xl px-3 py-2 text-center text-white"
-            >
-              <p className="text-sm font-bold font-mono">{s.value}</p>
-              <p className="text-[10px] text-white/60 uppercase">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Logo floating */}
-        <div className="absolute bottom-[-40px] left-6 z-20">
-          <div className="w-24 h-24 rounded-2xl bg-white shadow-xl ring-4 ring-white flex items-center justify-center overflow-hidden">
-            {entreprise.logoUrl ? (
-              <div
-                className="w-full h-full bg-cover bg-center"
-                style={{ backgroundImage: `url(${entreprise.logoUrl})` }}
-                role="img"
-                aria-label={`Logo de ${entreprise.nom}`}
-              />
-            ) : (
-              <span className="text-3xl font-bold font-[family-name:var(--font-display)] text-indigo">
-                {entreprise.nom.charAt(0)}
-              </span>
-            )}
-          </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header Sticky (Optional here if not handled at layout level, but keeping design clean) */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 py-3 px-4 shadow-sm" style={{ top: '56px' }}>
+        <div className="max-w-5xl mx-auto flex items-center gap-2 text-xs text-gray-500 font-medium whitespace-nowrap overflow-x-auto">
+          <Link href="/" className="hover:text-gray-900 transition-colors">Accueil</Link>
+          <span className="text-gray-400">/</span>
+          <Link href="/entreprises" className="hover:text-gray-900 transition-colors">Entreprises</Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900 truncate">{entreprise.nom}</span>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Column */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Title & Info */}
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-bold font-[family-name:var(--font-display)] text-foreground">
-                  {entreprise.nom}
-                </h1>
-                {entreprise.isVerified && (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan bg-cyan/10 px-2.5 py-1 rounded-full">
-                    <BadgeCheck className="w-3.5 h-3.5" />
-                    Vérifié
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {entreprise.quartier
-                    ? `${entreprise.quartier}, `
-                    : ""}
-                  {entreprise.ville}
-                </span>
-                {entreprise.categorie && (
-                  <span
-                    className="px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: `${entreprise.categorie.couleur || "#6366F1"}15`,
-                      color: entreprise.categorie.couleur || "#6366F1",
-                    }}
-                  >
-                    {entreprise.categorie.nom}
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  Membre depuis{" "}
-                  {new Date(entreprise.createdAt).toLocaleDateString("fr-FR", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 mt-3">
-                <StarRating
-                  rating={entreprise.stats.noteMoyenne}
-                  showValue
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Colonne gauche (lg:col-span-2) */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* HeroSection */}
+          <div className="bg-white border border-gray-200 rounded-md p-5 shadow-sm">
+            <div 
+              className="h-48 md:h-56 w-full rounded-md bg-gray-200 border border-gray-200 bg-cover bg-center"
+              style={{ backgroundImage: entreprise.coverUrl ? `url(${entreprise.coverUrl})` : undefined }}
+            />
+            
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 mt-4">
+              {entreprise.logoUrl ? (
+                <img 
+                  src={entreprise.logoUrl} 
+                  alt={entreprise.nom}
+                  className="w-16 h-16 rounded-md border-2 border-white shadow-md bg-white object-cover -mt-10 sm:-mt-8 flex-shrink-0 z-10"
                 />
-                <span className="text-sm text-muted-foreground">
-                  ({entreprise.stats.totalAvis} avis)
-                </span>
-              </div>
-            </div>
-
-            {/* Description */}
-            {entreprise.description && (
-              <div>
-                <h2 className="text-lg font-semibold font-[family-name:var(--font-display)] text-foreground mb-3">
-                  À propos
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  {entreprise.description}
-                </p>
-              </div>
-            )}
-
-            <Separator />
-
-            {/* Services */}
-            {entreprise.services.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold font-[family-name:var(--font-display)] text-foreground mb-4">
-                  Services proposés
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {entreprise.services.map((service) => (
-                    <div
-                      key={service.id}
-                      className="p-4 rounded-2xl bg-card border border-border hover:border-indigo/20 transition-colors"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className="font-medium text-foreground">
-                            {service.nom}
-                          </h3>
-                          {service.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {service.description}
-                            </p>
-                          )}
-                        </div>
-                        {service.prix !== null && (
-                          <span className="text-sm font-bold font-mono text-indigo whitespace-nowrap">
-                            {service.prix.toLocaleString("fr-FR")} {service.devise}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+              ) : (
+                <div className="w-16 h-16 rounded-md border-2 border-white shadow-md bg-gray-50 flex items-center justify-center font-bold text-gray-400 text-xl -mt-10 sm:-mt-8 flex-shrink-0 z-10">
+                  {entreprise.nom.charAt(0)}
+                </div>
+              )}
+              
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-semibold text-gray-900">{entreprise.nom}</h1>
+                  {entreprise.isVerified && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded px-2 py-0.5">
+                      <BadgeCheck className="w-3.5 h-3.5" />
+                      Vérifié
+                    </span>
+                  )}
+                  {entreprise.categorie && (
+                    <span className="inline-flex text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 rounded px-2 py-0.5">
+                      {entreprise.categorie.nom}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 flex-wrap">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {entreprise.quartier ? `${entreprise.quartier}, ` : ""}{entreprise.ville}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                    <span className="font-medium text-gray-700">{entreprise.stats.noteMoyenne > 0 ? entreprise.stats.noteMoyenne.toFixed(1) : "—"}</span>
+                    <span className="text-gray-400">({entreprise.stats.totalAvis} avis)</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Inscrit en {new Date(entreprise.createdAt).getFullYear()}</span>
+                  </span>
                 </div>
               </div>
-            )}
+            </div>
+          </div>
 
-            <Separator />
+          {/* Description */}
+          {entreprise.description && (
+            <div className="bg-white border border-gray-200 rounded-md p-5 shadow-sm">
+              <h2 className="text-sm font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-100">
+                À propos
+              </h2>
+              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                {entreprise.description}
+              </p>
+            </div>
+          )}
 
-            {/* Avis */}
+          {/* Services */}
+          {entreprise.services.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-md p-5 shadow-sm">
+              <h2 className="text-sm font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-100">
+                Services proposés
+              </h2>
+              <div className="divide-y divide-gray-100">
+                {entreprise.services.map((service) => (
+                  <div key={service.id} className="flex justify-between items-start py-3 first:pt-0 last:pb-0">
+                    <div className="flex-1 pr-4">
+                      <h3 className="text-sm font-medium text-gray-900">{service.nom}</h3>
+                      {service.description && (
+                        <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                      )}
+                    </div>
+                    {service.prix !== null && (
+                      <div className="text-right flex-shrink-0">
+                        <span className="block text-sm font-semibold text-gray-900">
+                          {service.prix.toLocaleString("fr-FR")} <span className="text-xs text-gray-400 font-normal">{service.devise}</span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Avis Section Wrapper */}
+          <div className="bg-white border border-gray-200 rounded-md p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-100">
+              Avis clients
+            </h2>
             <AvisSection
               entrepriseId={entreprise.id}
               entrepriseSlug={entreprise.slug}
@@ -239,73 +188,73 @@ export function EntrepriseProfileView({
             />
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Card */}
-            <div className="p-6 rounded-2xl bg-card border border-border shadow-sm sticky top-24">
-              <h3 className="text-base font-semibold font-[family-name:var(--font-display)] text-foreground mb-4">
-                Contacter
-              </h3>
+        </div>
 
-              <div className="space-y-3 mb-6">
-                {entreprise.telephone && (
-                  <a
-                    href={`tel:${entreprise.telephone}`}
-                    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-indigo/10 flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-4 h-4 text-indigo" />
-                    </div>
+        {/* Colonne droite (lg:col-span-1) */}
+        <div className="lg:col-span-1 relative">
+          {/* Contact Card (Sticky) */}
+          <div className="bg-white border border-gray-200 rounded-md p-5 shadow-sm sticky top-28">
+            <h2 className="text-sm font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-100">
+              Coordonnées
+            </h2>
+
+            <div className="space-y-4 mb-6">
+              {entreprise.telephone && (
+                <div className="flex items-start gap-3 text-sm text-gray-700">
+                  <Phone className="w-4 h-4 mt-0.5 text-gray-400" />
+                  <a href={`tel:${entreprise.telephone}`} className="hover:text-blue-600 transition-colors">
                     {entreprise.telephone}
                   </a>
-                )}
-                {entreprise.email && (
-                  <a
-                    href={`mailto:${entreprise.email}`}
-                    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-cyan/10 flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-4 h-4 text-cyan" />
-                    </div>
-                    <span className="truncate">{entreprise.email}</span>
+                </div>
+              )}
+              {entreprise.email && (
+                <div className="flex items-start gap-3 text-sm text-gray-700">
+                  <Mail className="w-4 h-4 mt-0.5 text-gray-400" />
+                  <a href={`mailto:${entreprise.email}`} className="hover:text-blue-600 transition-colors break-all">
+                    {entreprise.email}
                   </a>
-                )}
-                {entreprise.siteWeb && (
-                  <a
-                    href={entreprise.siteWeb}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-emerald/10 flex items-center justify-center flex-shrink-0">
-                      <Globe className="w-4 h-4 text-emerald" />
-                    </div>
-                    <span className="truncate">{entreprise.siteWeb}</span>
+                </div>
+              )}
+              {entreprise.siteWeb && (
+                <div className="flex items-start gap-3 text-sm text-gray-700">
+                  <Globe className="w-4 h-4 mt-0.5 text-gray-400" />
+                  <a href={entreprise.siteWeb} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors break-all">
+                    {entreprise.siteWeb}
                   </a>
-                )}
-                {entreprise.adresse && (
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <div className="w-9 h-9 rounded-xl bg-amber/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-amber" />
-                    </div>
-                    {entreprise.adresse}
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
+              {entreprise.adresse && (
+                <div className="flex items-start gap-3 text-sm text-gray-700">
+                  <MapPin className="w-4 h-4 mt-0.5 text-gray-400" />
+                  <span>{entreprise.adresse}</span>
+                </div>
+              )}
+            </div>
 
-              <Button
-                asChild
-                className="w-full h-12 rounded-xl bg-indigo hover:bg-indigo/90 text-white font-semibold shadow-lg shadow-indigo/25 hover:shadow-indigo/40 transition-all gap-2"
+            <div className="flex flex-col gap-2">
+              <Link 
+                href={`/messages?entreprise=${entreprise.id}`}
+                className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors"
+                aria-label="Envoyer un message"
               >
-                <Link href={`/messages?entreprise=${entreprise.id}`}>
-                  <MessageSquare className="w-4 h-4" />
-                  Envoyer un message
-                </Link>
-              </Button>
+                <MessageSquare className="w-4 h-4" />
+                Envoyer un message
+              </Link>
+              
+              {entreprise.telephone && (
+                <a 
+                  href={`tel:${entreprise.telephone}`}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 rounded-md py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+                >
+                  <Phone className="w-4 h-4" />
+                  Appeler
+                </a>
+              )}
             </div>
           </div>
         </div>
-      </div>
+
+      </main>
     </div>
   );
 }
