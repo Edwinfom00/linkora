@@ -17,7 +17,7 @@ export async function registerAction(
 ): Promise<AuthActionResult> {
   const parsed = registerSchema.safeParse(data);
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message || "Données invalides" };
+    return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
   }
 
   try {
@@ -48,7 +48,7 @@ export async function loginAction(
 ): Promise<AuthActionResult> {
   const parsed = loginSchema.safeParse(data);
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message || "Données invalides" };
+    return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
   }
 
   try {

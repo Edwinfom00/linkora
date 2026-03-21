@@ -91,7 +91,7 @@ export async function createService(data: unknown) {
   if (!session?.user) return { error: "Non authentifié" };
 
   const parsed = serviceSchema.safeParse(data);
-  if (!parsed.success) return { error: parsed.error.errors[0]?.message || "Données invalides" };
+  if (!parsed.success) return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
 
   const entreprise = await db
     .select()

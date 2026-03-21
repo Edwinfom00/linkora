@@ -108,7 +108,7 @@ export async function sendMessage(data: unknown) {
   if (!session?.user) return { error: "Non authentifié" };
 
   const parsed = messageSchema.safeParse(data);
-  if (!parsed.success) return { error: parsed.error.errors[0]?.message || "Données invalides" };
+  if (!parsed.success) return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
 
   let conversationId = parsed.data.conversationId;
 

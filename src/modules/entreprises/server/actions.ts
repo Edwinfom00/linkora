@@ -296,7 +296,7 @@ export async function createEntreprise(data: unknown) {
   if (!session?.user) return { error: "Non authentifié" };
 
   const parsed = entrepriseSchema.safeParse(data);
-  if (!parsed.success) return { error: parsed.error.errors[0]?.message || "Données invalides" };
+  if (!parsed.success) return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
 
   const slug = parsed.data.nom
     .toLowerCase()
@@ -345,7 +345,7 @@ export async function updateEntreprise(id: string, data: unknown) {
   }
 
   const parsed = entrepriseSchema.safeParse(data);
-  if (!parsed.success) return { error: parsed.error.errors[0]?.message || "Données invalides" };
+  if (!parsed.success) return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
 
   try {
     await db
