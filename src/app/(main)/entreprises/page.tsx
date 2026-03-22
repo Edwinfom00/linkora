@@ -6,6 +6,8 @@ import { SearchBar } from "@/modules/entreprises/ui/components/search-bar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { MapPin, Star, Building2, ChevronRight } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Toutes les entreprises",
   description: "Parcourez notre annuaire d'entreprises de services à Douala et dans tout le Cameroun.",

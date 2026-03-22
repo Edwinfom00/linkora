@@ -16,6 +16,8 @@ import { SearchBar } from "@/modules/entreprises/ui/components/search-bar";
 import { EntrepriseCard } from "@/modules/entreprises/ui/components/entreprise-card";
 import { getEntreprisesRecentes, getAllCategories } from "@/modules/entreprises/server/actions";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "BizConnect Cameroun — Trouvez les meilleures entreprises à Douala",
   description: "Recherchez et contactez les meilleurs professionnels et entreprises de services à Douala et dans tout le Cameroun.",
