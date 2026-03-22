@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "@/lib/auth-client";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/dashboard/profil", icon: User, label: "Profil" },
   { href: "/dashboard/services", icon: Wrench, label: "Services" },
   { href: "/dashboard/avis", icon: Star, label: "Avis" },
+  { href: "/dashboard/parametres", icon: Settings, label: "Paramètres" },
 ];
 
 export default function DashboardLayout({

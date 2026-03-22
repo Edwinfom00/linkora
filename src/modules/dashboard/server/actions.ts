@@ -184,3 +184,51 @@ export async function deleteService(serviceId: string) {
   revalidatePath("/dashboard/services");
   return { data: { success: true } };
 }
+
+export async function updateService(serviceId: string, data: unknown) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { error: "Non authentifié" };
+
+  const parsed = serviceSchema.safeParse(data);
+  if (!parsed.success) return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
+
+  const service = await db
+    .select()
+    .from(services)
+    .where(eq(services.id, serviceId))
+    .limit(1);
+
+  if (!service[0]) return { error: "Service non trouvé" };
+
+  const entreprise = await db
+    .select()
+    .from(entreprises)
+    .where(
+      and(
+        eq(entreprises.id, service[0].entrepriseId),
+        eq(entreprises.userId, session.user.id)
+      )
+    )
+    .limit(1);
+
+  if (!entreprise[0]) return { error: "Non autorisé" };
+
+  try {
+    const result = await db
+      .update(services)
+      .set({
+        nom: parsed.data.nom,
+        description: parsed.data.description || null,
+        prix: parsed.data.prix || null,
+        devise: parsed.data.devise,
+        updatedAt: new Date(),
+      })
+      .where(eq(services.id, serviceId))
+      .returning();
+
+    revalidatePath("/dashboard/services");
+    return { data: result[0] };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Erreur lors de la mise à jour" };
+  }
+}
