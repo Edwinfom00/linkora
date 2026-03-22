@@ -291,7 +291,7 @@ export async function getMyEntreprise() {
   return result[0] || null;
 }
 
-export async function createEntreprise(data: unknown) {
+export async function createEntreprise(data: unknown, images?: { logoUrl?: string; coverUrl?: string }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) return { error: "Non authentifié" };
 
@@ -319,6 +319,8 @@ export async function createEntreprise(data: unknown) {
         email: parsed.data.email || null,
         siteWeb: parsed.data.siteWeb || null,
         categorieId: parsed.data.categorieId || null,
+        logoUrl: images?.logoUrl || null,
+        coverUrl: images?.coverUrl || null,
       })
       .returning();
 
@@ -330,7 +332,7 @@ export async function createEntreprise(data: unknown) {
   }
 }
 
-export async function updateEntreprise(id: string, data: unknown) {
+export async function updateEntreprise(id: string, data: unknown, images?: { logoUrl?: string; coverUrl?: string }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) return { error: "Non authentifié" };
 
@@ -360,6 +362,8 @@ export async function updateEntreprise(id: string, data: unknown) {
         email: parsed.data.email || null,
         siteWeb: parsed.data.siteWeb || null,
         categorieId: parsed.data.categorieId || null,
+        ...(images?.logoUrl !== undefined ? { logoUrl: images.logoUrl || null } : {}),
+        ...(images?.coverUrl !== undefined ? { coverUrl: images.coverUrl || null } : {}),
         updatedAt: new Date(),
       })
       .where(eq(entreprises.id, id));

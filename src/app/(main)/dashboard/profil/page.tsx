@@ -19,12 +19,30 @@ export default async function ProfilPage() {
     getAllCategories(),
   ]);
 
+  // Map to include logoUrl and coverUrl for the form
+  const entrepriseForForm = entreprise
+    ? {
+        id: entreprise.id,
+        nom: entreprise.nom,
+        description: entreprise.description,
+        ville: entreprise.ville,
+        quartier: entreprise.quartier,
+        adresse: entreprise.adresse,
+        telephone: entreprise.telephone,
+        email: entreprise.email,
+        siteWeb: entreprise.siteWeb,
+        categorieId: entreprise.categorieId,
+        logoUrl: entreprise.logoUrl,
+        coverUrl: entreprise.coverUrl,
+      }
+    : null;
+
   return (
     <div className="max-w-2xl">
       <h2 className="text-2xl font-bold font-[family-name:var(--font-display)] text-foreground mb-6">
         Profil entreprise
       </h2>
-      <ProfilFormView entreprise={entreprise} categories={categories} />
+      <ProfilFormView entreprise={entrepriseForForm} categories={categories} />
     </div>
   );
 }

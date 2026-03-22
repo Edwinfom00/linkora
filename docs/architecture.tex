@@ -1,0 +1,107 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+
+% Définition des couleurs pour le code
+\definecolor{lightgray}{rgb}{0.95, 0.95, 0.95}
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.6}
+\definecolor{cyan}{rgb}{0.0, 0.6, 0.6}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
+\title{\textbf{Document d'Architecture et de Synthèse Technique}\\ \large Projet \textit{BizConnect Cameroun}}
+\author{Documentation Niveau Universitaire (Licence 2)}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Contexte du Projet et Objectifs}
+\textbf{BizConnect Cameroun} est une application web conçue comme une plateforme de mise en relation B2B et B2C pour le marché local camerounais. Le projet a été inspiré par le cas réel de l'entreprise "VOLCANO Sarl" basée à Douala.
+
+Ce document est destiné à des étudiants de \textbf{niveau universitaire (Licence 2)} en informatique/développement logiciel. L'objectif de la plateforme est d'offrir :
+\begin{itemize}
+    \item Un annuaire moderne pour rechercher des prestataires locaux.
+    \item Un tableau de bord \textit{(Dashboard)} où les entreprises peuvent gérer leur profil (informations, logo, couverture).
+    \item Un système d'avis et de notation où les clients peuvent évaluer la qualité des services.
+\end{itemize}
+L'interface utilisateur a été conçue autour du concept \textit{"Afro-Digital Luxury"}, visant un design premium, rapide et minimaliste.
+
+\section{Stack Technologique et Versions}
+Ce projet a été construit avec un écosystème JavaScript/TypeScript moderne en s'appuyant sur les standards de l'industrie :
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=Technologies Clés]
+\begin{enumerate}
+    \item \textbf{Framework Full-Stack} : Next.js version 15 (App Router).
+    \item \textbf{Langage} : TypeScript (JavaScript typé statiquement pour éviter les erreurs de type).
+    \item \textbf{Bibliothèque UI} : React 19, couplé à Tailwind CSS v4 et Shadcn/UI (composants préfabriqués accessibles).
+    \item \textbf{Base de données (SGBD)} : PostgreSQL, hébergée de manière \textit{Serverless} chez Neon.tech.
+    \item \textbf{Couche ORM (Object-Relational Mapping)} : Drizzle ORM (interagit avec SQL de manière typée).
+    \item \textbf{Authentification} : Better-Auth v1.5 (Solutions sécurisées sans complexité de code).
+    \item \textbf{Gestion des Médias} : Vercel Blob (stockage d'objets cloud pour images).
+\end{enumerate}
+\end{tcolorbox}
+
+\section{Comment transitent les données ? (Le Flux d'Information)}
+Dans l'architecture App Router de Next.js, la distinction entre \textbf{Client} (le navigateur) et \textbf{Serveur} (le backend Node.js) est primordiale pour comprendre le transit des données.
+
+\subsection{Lecture des données (Serveur vers Client)}
+Pour afficher une page (ex: liste des entreprises), le flux est le suivant :
+\begin{enumerate}
+    \item \textbf{Requête SQL via Drizzle} : Le \textit{Server Component} (composant asynchrone qui s'exécute sur le serveur) exécute une requête SQL directement via l'ORM Drizzle (\texttt{db.select().from(entreprises)}).
+    \item \textbf{Rendu HTML} : Les données récupérées sont injectées dans les balises JSX côté serveur.
+    \item \textbf{Envoi au navigateur} : Le serveur génère le HTML brut contenant les informations et l'envoie au navigateur. Cela rend l'application très performante et bénéfique pour le SEO (Référencement).
+\end{enumerate}
+
+\subsection{Création/Modification de données (Client vers Serveur)}
+Pour sauvegarder un formulaire (ex: mise à jour du profil de l'entreprise) :
+\begin{enumerate}
+    \item \textbf{Côté Client} : L'utilisateur remplit un formulaire. Le composant React utilise \texttt{react-hook-form} et \texttt{zod} pour vérifier (valider) instantanément si les données sont au bon format (ex: si l'email est un vrai email).
+    \item \textbf{Appel d'une "Server Action"} : Plutôt que de créer une API REST classique (\texttt{POST /api/profile}), Next.js permet d'appeler directement une fonction backend asynchrone (Server Action) avec \texttt{"use server"} au début de son fichier.
+    \item \textbf{Transactions Base de Données} : La Server Action reçoit l'objet JavaScript, vérifie l'identité de l'utilisateur, et exécute la requête \texttt{UPDATE} via Drizzle.
+    \item \textbf{Images (Cas particulier)} : Les images sont d'abord envoyées vers une API (\texttt{/api/upload}) qui les stocke sur un compartiment Vercel Blob. Vercel renvoie l'URL finale de l'image (ex: \texttt{https://.../logo.png}). Cette URL est ensuite passée à la Server Action pour être enregistrée dans la colonne \texttt{logo\_url} de la base de données.
+\end{enumerate}
+
+\section{Comment fonctionne l'Authentification (Better-Auth) ?}
+Contrairement aux simples tokens JWT, le projet utilise une authentification \textbf{basée sur des Sessions en Base de données}.
+
+\subsection{Le mécanisme de connexion}
+\begin{itemize}
+    \item Lorsque l'utilisateur entre son E-mail et son Mot de passe, \textbf{Better-Auth} vérifie les données via Vercel Edge / Node.js.
+    \item Le mot de passe crypté est comparé. Si c'est un succès, Better-Auth crée une nouvelle ligne dans la table SQL \texttt{sessions} (contenant un jeton d'authentification aléatoire, l'IP, et la date d'expiration).
+\end{itemize}
+
+\subsection{Stockage des Cookies}
+Plutôt que d'envoyer le jeton (\textit{token}) au code JavaScript (ce qui serait vulnérable aux attaques XSS), le serveur renvoie un \textbf{Cookie HTTP-Only}. Le navigateur stocke ce cookie et l'enverra automatiquement à chaque future requête vers le domaine.
+
+\subsection{La Sécurité globale (Le Middleware)}
+Afin de sécuriser les pages comme le tableau de bord (\texttt{/dashboard}), le projet utilise un \textbf{Middleware Next.js}. Un middleware est un morceau de code qui s'exécute \textit{avant} même que la requête n'atteigne la page souhaitée.
+\begin{enumerate}
+    \item Un visiteur demande l'accès à l'URL \texttt{/dashboard}.
+    \item Le Middleware (fichier \texttt{middleware.ts}) intercepte la requête.
+    \item Il lit le cookie \texttt{better-auth.session\_token}.
+    \item Si le cookie est absent ou invalide, l'utilisateur est instantanément redirigé vers la page de \texttt{/login} (avec un HTTP 307 Redirect).
+    \item S'il est valide, l'utilisateur accède au Server Component du Dashboard qui utilisera \texttt{auth.api.getSession()} pour récupérer et valider de manière sécurisée l'identifiant (ID) de l'utilisateur afin de charger \textit{uniquement} ses données d'entreprise.
+\end{enumerate}
+
+\section{Conclusion pour les étudiants (Licence 2)}
+L'intérêt de \textbf{Next.js 15} avec des outils comme \textbf{Drizzle ORM} et \textbf{Better-Auth} est de supprimer les frontières complexes entre le backend (APIs) et le frontend (React). Vous pouvez désormais manipuler des données SQL fortes et sécurisées depuis le même projet, ce qui accélère considérablement la construction d'applications de ce genre, tout en gardant une sécurité de grade entreprise.
+
+\end{document}

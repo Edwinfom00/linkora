@@ -75,7 +75,7 @@ export function RegisterForm() {
   const handleGoogleRegister = async () => {
     await signIn.social({
       provider: "google",
-      callbackURL: "/",
+      callbackURL: "/select-role",
     });
   };
 

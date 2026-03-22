@@ -1,84 +1,25 @@
 "use server";
 
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema/auth.schema";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { loginSchema, registerSchema } from "@/lib/validations";
-import type { AuthActionResult } from "../types/type.d";
+import { revalidatePath } from "next/cache";
 
-export async function getSessionAction() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  return session;
-}
-
-export async function registerAction(
-  data: unknown
-): Promise<AuthActionResult> {
-  const parsed = registerSchema.safeParse(data);
-  if (!parsed.success) {
-    return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
-  }
+export async function updateUserRole(role: "client" | "entreprise") {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { error: "Non authentifié" };
 
   try {
-    await auth.api.signUpEmail({
-      body: {
-        name: parsed.data.name,
-        email: parsed.data.email,
-        password: parsed.data.password,
-        role: parsed.data.role,
-      },
-    });
+    await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, session.user.id));
 
-    return {
-      data: {
-        redirectTo:
-          parsed.data.role === "entreprise" ? "/dashboard" : "/",
-      },
-    };
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Erreur lors de l'inscription";
-    return { error: message };
+    revalidatePath("/");
+    return { success: true, role };
+  } catch {
+    return { error: "Erreur lors de la mise à jour du rôle" };
   }
-}
-
-export async function loginAction(
-  data: unknown
-): Promise<AuthActionResult> {
-  const parsed = loginSchema.safeParse(data);
-  if (!parsed.success) {
-    return { error: (parsed.error as any).errors[0]?.message || "Données invalides" };
-  }
-
-  try {
-    const result = await auth.api.signInEmail({
-      body: {
-        email: parsed.data.email,
-        password: parsed.data.password,
-      },
-    });
-
-    const userRole = (result.user as { role?: string }).role || "client";
-    const redirectTo =
-      userRole === "admin"
-        ? "/admin"
-        : userRole === "entreprise"
-          ? "/dashboard"
-          : "/";
-
-    return { data: { redirectTo } };
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Email ou mot de passe incorrect";
-    return { error: message };
-  }
-}
-
-export async function logoutAction(): Promise<void> {
-  await auth.api.signOut({
-    headers: await headers(),
-  });
 }

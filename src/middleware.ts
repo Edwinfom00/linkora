@@ -4,12 +4,16 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get session token from cookies
-  // Handle both local (better-auth.session_token) and production secure (__Secure-better-auth.session_token) cookies
-  const sessionCookieName = process.env.NODE_ENV === "production" ? "__Secure-better-auth.session_token" : "better-auth.session_token";
-  const sessionToken = request.cookies.get(sessionCookieName)?.value || request.cookies.get("better-auth.session_token")?.value;
+  const sessionCookieName =
+    process.env.NODE_ENV === "production"
+      ? "__Secure-better-auth.session_token"
+      : "better-auth.session_token";
+  const sessionToken =
+    request.cookies.get(sessionCookieName)?.value ||
+    request.cookies.get("better-auth.session_token")?.value;
 
   // Protected routes
-  const protectedRoutes = ["/dashboard", "/messages", "/admin"];
+  const protectedRoutes = ["/dashboard", "/messages", "/admin", "/select-role"];
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -38,5 +42,6 @@ export const config = {
     "/admin/:path*",
     "/login",
     "/register",
+    "/select-role",
   ],
 };
