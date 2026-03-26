@@ -1,0 +1,237 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{tikz-uml}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tcolorbox}
+\usepackage{array}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=cyan!60!black,
+}
+
+\title{\textbf{Modélisation UML — BizConnect Cameroun}\\[0.5em]
+\large Diagramme de Classes \& Diagramme de Cas d'Utilisation\\[0.3em]
+\normalsize Notation UML 2.0 — Conventions Laurent Audibert}
+\author{Projet Génie Logiciel — Niveau Licence 2}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Diagramme de Cas d'Utilisation}
+% ============================================================
+
+Le diagramme de cas d'utilisation décrit les \textbf{fonctionnalités observables} (cas d'utilisation) offertes par le système \textit{BizConnect Cameroun}, du point de vue de ses acteurs externes.
+
+\subsection{Identification des acteurs}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{Acteur} & \textbf{Type} & \textbf{Description} \\
+\midrule
+Visiteur & Principal & Utilisateur non authentifié qui consulte la plateforme. \\
+Client & Principal & Utilisateur authentifié (rôle \texttt{client}) pouvant déposer des avis et envoyer des messages. \\
+Entreprise & Principal & Utilisateur authentifié (rôle \texttt{entreprise}) gérant son profil, ses services et consultant ses avis. \\
+Système Auth (Google) & Secondaire & Fournisseur d'identité externe sollicité lors de la connexion via Google OAuth 2.0. \\
+\bottomrule
+\end{tabular}
+\caption{Tableau des acteurs du système}
+\end{table}
+
+\begin{tcolorbox}[colback=blue!3!white,colframe=blue!50!black,title=Note méthodologique (Audibert)]
+\small
+Les acteurs \textbf{Client} et \textbf{Entreprise} sont des spécialisations (par rôle) du \textbf{Visiteur} une fois authentifié. Conformément aux recommandations d'Audibert, on n'utilise pas nécessairement l'héritage UML entre acteurs lorsque la distinction repose uniquement sur un \textit{attribut de rôle} interne au système (ici, le champ \texttt{role} de l'entité \texttt{Utilisateur}).
+\end{tcolorbox}
+
+\subsection{Liste des cas d'utilisation}
+
+\begin{longtable}{cp{5cm}p{6cm}}
+\toprule
+\textbf{Code} & \textbf{Cas d'utilisation} & \textbf{Acteur(s)} \\
+\midrule
+\endhead
+CU-01 & S'inscrire & Visiteur \\
+CU-02 & S'authentifier (email/mdp) & Visiteur \\
+CU-03 & S'authentifier via Google & Visiteur, Système Auth \\
+CU-04 & Choisir son rôle & Visiteur (inclus dans CU-01, CU-03) \\
+CU-05 & Consulter l'annuaire & Visiteur, Client \\
+CU-06 & Rechercher une entreprise & Visiteur, Client \\
+CU-07 & Consulter un profil d'entreprise & Visiteur, Client \\
+CU-08 & Déposer un avis & Client \\
+CU-09 & Envoyer un message & Client \\
+CU-10 & Gérer le profil entreprise & Entreprise \\
+CU-11 & Télécharger un logo & Entreprise (étend CU-10) \\
+CU-12 & Télécharger une couverture & Entreprise (étend CU-10) \\
+CU-13 & Gérer les services & Entreprise \\
+CU-14 & Ajouter un service & Entreprise (inclus dans CU-13) \\
+CU-15 & Modifier un service & Entreprise (étend CU-13) \\
+CU-16 & Supprimer un service & Entreprise (étend CU-13) \\
+CU-17 & Activer/Désactiver un service & Entreprise (étend CU-13) \\
+CU-18 & Consulter le tableau de bord & Entreprise \\
+CU-19 & Consulter les avis reçus & Entreprise \\
+CU-20 & Supprimer son compte & Client, Entreprise \\
+\bottomrule
+\caption{Liste exhaustive des cas d'utilisation}
+\end{longtable}
+
+\subsection{Relations entre cas d'utilisation}
+
+\begin{itemize}[leftmargin=2cm]
+    \item[\texttt{«include»}] \textbf{CU-01 $\rightarrow$ CU-04} : L'inscription \textit{inclut obligatoirement} le choix du rôle.
+    \item[\texttt{«include»}] \textbf{CU-03 $\rightarrow$ CU-04} : L'authentification Google \textit{inclut} le choix du rôle (pour les nouveaux comptes).
+    \item[\texttt{«include»}] \textbf{CU-13 $\rightarrow$ CU-14} : Gérer les services \textit{inclut} la possibilité d'en ajouter.
+    \item[\texttt{«extend»}] \textbf{CU-10 $\leftarrow$ CU-11, CU-12} : Le téléchargement d'images est une \textit{extension optionnelle} de la gestion du profil.
+    \item[\texttt{«extend»}] \textbf{CU-13 $\leftarrow$ CU-15, CU-16, CU-17} : Modifier, supprimer et activer/désactiver un service sont des extensions conditionnelles (nécessitent qu'un service existe).
+\end{itemize}
+
+\subsection{Fiche descriptive détaillée}
+
+\subsubsection{CU-01 : S'inscrire}
+\begin{table}[h!]
+\centering
+\begin{tabular}{p{3.5cm}p{10cm}}
+\toprule
+\textbf{Rubrique} & \textbf{Contenu} \\
+\midrule
+Acteur principal & Visiteur \\
+Précondition & Le visiteur ne possède pas de compte dans le système. \\
+\midrule
+\multicolumn{2}{l}{\textbf{Scénario nominal}} \\
+\midrule
+\multicolumn{2}{p{14cm}}{%
+\begin{enumerate}[nosep]
+    \item Le visiteur accède à la page d'inscription.
+    \item Il saisit son nom, son adresse e-mail et un mot de passe.
+    \item Il clique sur <<~Continuer~>>.
+    \item Le système affiche l'étape de sélection du rôle (Client ou Entreprise).
+    \item Le visiteur choisit son rôle et clique <<~Créer mon compte~>>.
+    \item Le système crée le compte, ouvre une session et redirige l'utilisateur.
+\end{enumerate}} \\
+\midrule
+\multicolumn{2}{l}{\textbf{Scénario alternatif}} \\
+\midrule
+\multicolumn{2}{p{14cm}}{%
+3a. Le visiteur clique sur <<~Continuer avec Google~>>. Le système redirige vers le fournisseur Google OAuth. Après authentification, il est redirigé vers la page de sélection de rôle (CU-04).} \\
+\midrule
+Postcondition & Un enregistrement \texttt{Utilisateur} est créé avec le rôle sélectionné. Une session est initiée. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{CU-20 : Supprimer son compte}
+\begin{table}[h!]
+\centering
+\begin{tabular}{p{3.5cm}p{10cm}}
+\toprule
+\textbf{Rubrique} & \textbf{Contenu} \\
+\midrule
+Acteur principal & Client ou Entreprise (authentifié) \\
+Précondition & L'utilisateur est connecté. \\
+\midrule
+\multicolumn{2}{l}{\textbf{Scénario nominal}} \\
+\midrule
+\multicolumn{2}{p{14cm}}{%
+\begin{enumerate}[nosep]
+    \item L'utilisateur accède à <<~Paramètres~>> dans le tableau de bord.
+    \item Il clique sur <<~Supprimer mon compte~>> dans la zone dangereuse.
+    \item Le système affiche un dialogue de confirmation.
+    \item L'utilisateur tape <<~SUPPRIMER~>> dans le champ de confirmation.
+    \item Il clique <<~Supprimer définitivement~>>.
+    \item Le système supprime le compte (et toutes les données liées par cascade SQL), ferme la session et redirige vers la page d'accueil.
+\end{enumerate}} \\
+\midrule
+Postcondition & Le compte et toutes les données associées sont irréversiblement supprimés. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+% ============================================================
+\section{Diagramme de Classes}
+% ============================================================
+
+Le diagramme de classes modélise la \textbf{structure statique} du domaine métier. Il est directement dérivé du schéma SQL (Drizzle ORM / PostgreSQL) du projet.
+
+\subsection{Conventions utilisées}
+
+\begin{itemize}
+    \item \textbf{Visibilité} : \texttt{-} (privé), \texttt{+} (public), \texttt{\#} (protégé).
+    \item \textbf{Multiplicité} : \texttt{0..1} (optionnel), \texttt{1} (obligatoire), \texttt{0..*} ou \texttt{*} (collection).
+    \item \textbf{Composition} ($\blacklozenge$) : L'objet composant est détruit si le conteneur est supprimé (\texttt{ON DELETE CASCADE} en SQL).
+    \item \textbf{Agrégation} ($\lozenge$) : Lien fort sans dépendance existentielle.
+    \item \texttt{<<enumeration>>} : Type énuméré.
+    \item Les attributs \texttt{[0..1]} correspondent aux colonnes SQL nullables.
+\end{itemize}
+
+\subsection{Dictionnaire des classes}
+
+\begin{longtable}{p{3cm}p{4cm}p{6.5cm}}
+\toprule
+\textbf{Classe} & \textbf{Cardinalité clé} & \textbf{Description} \\
+\midrule
+\endhead
+Utilisateur & Gère 0..1 Entreprise & Tout compte inscrit (client ou entreprise). Classe centrale du système d'authentification (Better-Auth). \\
+Session & 0..* par Utilisateur & Session d'authentification active, matérialisée par un cookie HTTP-Only côté navigateur. \\
+CompteExterne & 0..* par Utilisateur & Association OAuth entre l'utilisateur et un fournisseur externe (Google). \\
+Catégorie & Contient 0..* Entreprises & Secteur d'activité (Construction, Transport, Santé\ldots). \\
+Entreprise & Propose 0..* Services & Entité métier centrale. Prestataire de services référencé sur la plateforme. \\
+Service & $\blacklozenge$ d'Entreprise & Prestation offerte avec un prix indicatif en XAF. Composition forte. \\
+Avis & $\blacklozenge$ d'Entreprise & Évaluation (note 1--5 + commentaire optionnel) d'un client sur une entreprise. \\
+Conversation & $\blacklozenge$ d'Entreprise & Canal de discussion entre un client et une entreprise. \\
+Message & $\blacklozenge$ de Conversation & Unité de communication textuelle. \\
+Media & $\blacklozenge$ d'Entreprise & Fichier image/document associé à une entreprise. \\
+\bottomrule
+\caption{Dictionnaire des classes métier}
+\end{longtable}
+
+\subsection{Tableau des associations}
+
+\begin{longtable}{p{4cm}cp{2cm}p{5.5cm}}
+\toprule
+\textbf{Association} & \textbf{Type} & \textbf{Multi.} & \textbf{Justification} \\
+\midrule
+\endhead
+Utilisateur $\rightarrow$ Session & Assoc. & 1 -- 0..* & Multi-appareils. CASCADE à la suppression. \\
+Utilisateur $\rightarrow$ CompteExterne & Assoc. & 1 -- 0..* & Lien OAuth (Google). Peut ne pas exister. \\
+Utilisateur $\rightarrow$ Entreprise & Assoc. & 1 -- 0..1 & Un utilisateur \texttt{ENTREPRISE} gère exactement une entreprise. \\
+Catégorie $\rightarrow$ Entreprise & Agrég. & 0..1 -- 0..* & Une entreprise peut ne pas avoir de catégorie. \\
+Entreprise $\rightarrow$ Service & Compo. & 1 -- 0..* & Service inexistant sans entreprise. CASCADE. \\
+Entreprise $\rightarrow$ Avis & Compo. & 1 -- 0..* & Avis lié à une seule entreprise. CASCADE. \\
+Entreprise $\rightarrow$ Media & Compo. & 1 -- 0..* & Media appartient à une seule entreprise. \\
+Entreprise $\rightarrow$ Conversation & Compo. & 1 -- 0..* & Conversation liée à une entreprise. CASCADE. \\
+Conversation $\rightarrow$ Message & Compo. & 1 -- 0..* & Message n'existe pas sans conversation. CASCADE. \\
+Utilisateur $\rightarrow$ Avis & Assoc. & 1 -- 0..* & Un client peut déposer plusieurs avis. \\
+Utilisateur $\rightarrow$ Message & Assoc. & 1 -- 0..* & Un utilisateur peut envoyer plusieurs messages. \\
+\bottomrule
+\caption{Tableau détaillé des associations et multiplicités}
+\end{longtable}
+
+\subsection{Justification du choix \textit{Rôle} vs. \textit{Héritage}}
+
+\begin{tcolorbox}[colback=green!3!white,colframe=green!50!black,title=Choix de conception]
+Dans la modélisation classique, on pourrait créer deux sous-classes \texttt{Client} et \texttt{Entreprise} héritant de \texttt{Utilisateur}. Cependant, conformément aux recommandations de \textbf{Laurent Audibert} (\textit{UML 2.0 — De l'apprentissage à la pratique}), nous avons opté pour un \textbf{attribut de rôle} (énumération \texttt{RoleUtilisateur}) car :
+\begin{enumerate}
+    \item Les deux types d'utilisateurs partagent \textbf{exactement les mêmes attributs} (nom, email, mot de passe, image).
+    \item La distinction se fait uniquement au niveau des \textbf{droits d'accès} (contrôlés par le middleware et les Server Actions).
+    \item L'héritage ajouterait une complexité inutile sans apporter d'attributs ou d'opérations spécifiques aux sous-classes.
+\end{enumerate}
+Ce choix simplifie le schéma SQL (une seule table \texttt{users}) et facilite la maintenance.
+\end{tcolorbox}
+
+\end{document}
