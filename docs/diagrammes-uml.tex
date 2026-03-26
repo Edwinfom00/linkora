@@ -6,7 +6,6 @@
 \geometry{a4paper, margin=2.5cm}
 \usepackage{hyperref}
 \usepackage{graphicx}
-\usepackage{tikz-uml}
 \usepackage{enumitem}
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -20,7 +19,7 @@
 }
 
 \title{\textbf{Modélisation UML — BizConnect Cameroun}\\[0.5em]
-\large Diagramme de Classes \& Diagramme de Cas d'Utilisation\\[0.3em]
+\large Diagrammes de Cas d'Utilisation, de Classes \& de Séquence\\[0.3em]
 \normalsize Notation UML 2.0 — Conventions Laurent Audibert}
 \author{Projet Génie Logiciel — Niveau Licence 2}
 \date{\today}
@@ -234,4 +233,225 @@ Dans la modélisation classique, on pourrait créer deux sous-classes \texttt{Cl
 Ce choix simplifie le schéma SQL (une seule table \texttt{users}) et facilite la maintenance.
 \end{tcolorbox}
 
+\newpage
+% ============================================================
+\section{Diagrammes de Séquence}
+% ============================================================
+
+Le diagramme de séquence modélise les \textbf{interactions temporelles} entre les objets (participants) lors de l'exécution d'un scénario précis. Il met en évidence l'ordre chronologique des messages échangés. Nous présentons ici deux fonctionnalités phares du système.
+
+\subsection{DS-01 : Inscription d'un utilisateur (scénario nominal)}
+
+Ce diagramme décrit le processus complet d'inscription d'un nouvel utilisateur, depuis la saisie du formulaire jusqu'à la redirection vers l'espace approprié.
+
+\subsubsection{Participants}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Participant} & \textbf{Type} & \textbf{Stéréotype} \\
+\midrule
+Visiteur & Acteur principal & \texttt{<<actor>>} \\
+Page Inscription & Interface utilisateur & \texttt{<<boundary>>} \\
+Contrôleur Auth & Logique métier & \texttt{<<control>>} \\
+Better-Auth & Système d'authentification & \texttt{<<control>>} \\
+Base de données & Couche de persistance & \texttt{<<entity>>} \\
+\bottomrule
+\end{tabular}
+\caption{Participants du DS-01}
+\end{table}
+
+\subsubsection{Déroulement séquentiel}
+
+\begin{tcolorbox}[colback=white,colframe=black!50,title=DS-01 — Inscription d'un utilisateur]
+\small
+\begin{verbatim}
+Visiteur          Page Inscription     Contrôleur Auth     Better-Auth      Base de données
+  |                     |                    |                  |                  |
+  |-- accéder() ------->|                    |                  |                  |
+  |                     |                    |                  |                  |
+  |-- saisir(nom,       |                    |                  |                  |
+  |   email, mdp) ----->|                    |                  |                  |
+  |                     |                    |                  |                  |
+  |-- cliquer           |                    |                  |                  |
+  |  "Continuer" ------>|                    |                  |                  |
+  |                     |-- valider          |                  |                  |
+  |                     |   Formulaire() --->|                  |                  |
+  |                     |                    |                  |                  |
+  |                     |     [Validation Zod OK]               |                  |
+  |                     |                    |                  |                  |
+  |                     |<- afficher étape   |                  |                  |
+  |                     |   sélection rôle --|                  |                  |
+  |                     |                    |                  |                  |
+  |-- choisir rôle      |                    |                  |                  |
+  |  ("entreprise") --->|                    |                  |                  |
+  |                     |                    |                  |                  |
+  |-- cliquer "Créer    |                    |                  |                  |
+  |  mon compte" ------>|                    |                  |                  |
+  |                     |-- signUp(nom,      |                  |                  |
+  |                     |  email, mdp,       |                  |                  |
+  |                     |  role) ----------->|                  |                  |
+  |                     |                    |-- auth.api       |                  |
+  |                     |                    |  .signUpEmail()  |                  |
+  |                     |                    |----------------->|                  |
+  |                     |                    |                  |-- INSERT INTO    |
+  |                     |                    |                  |   users(...) --->|
+  |                     |                    |                  |                  |
+  |                     |                    |                  |<-- id utilisateur |
+  |                     |                    |                  |                  |
+  |                     |                    |                  |-- INSERT INTO    |
+  |                     |                    |                  |   sessions(...)->|
+  |                     |                    |                  |                  |
+  |                     |                    |                  |<- token session  |
+  |                     |                    |                  |                  |
+  |                     |                    |<-- cookie        |                  |
+  |                     |                    |  HTTP-Only ------|                  |
+  |                     |                    |                  |                  |
+  |                     |<-- succès ---------|                  |                  |
+  |                     |                    |                  |                  |
+  |<-- redirection      |                    |                  |                  |
+  |   /dashboard -------|                    |                  |                  |
+  |                     |                    |                  |                  |
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection{Fragments combinés}
+
+\begin{itemize}
+    \item \textbf{alt} [Validation Zod échoue] : Le contrôleur renvoie un message d'erreur à la page, qui affiche le champ invalide en rouge. Le flux s'arrête.
+    \item \textbf{alt} [Email déjà existant] : Better-Auth détecte un doublon dans la table \texttt{users} et renvoie une erreur <<~Cet email est déjà utilisé~>>. Le flux s'arrête.
+    \item \textbf{alt} [Inscription via Google] : Le visiteur clique <<~Continuer avec Google~>>. Le système redirige vers Google OAuth. Après retour, le système redirige vers \texttt{/select-role} pour le choix du rôle (via la Server Action \texttt{updateUserRole}).
+\end{itemize}
+
+\newpage
+\subsection{DS-02 : Mise à jour du profil entreprise avec upload d'images}
+
+Ce diagramme décrit le processus de modification du profil d'une entreprise, incluant le téléchargement d'un logo et/ou d'une image de couverture vers le service de stockage cloud Vercel Blob.
+
+\subsubsection{Participants}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Participant} & \textbf{Type} & \textbf{Stéréotype} \\
+\midrule
+Entreprise & Acteur principal & \texttt{<<actor>>} \\
+Page Profil & Interface utilisateur (React) & \texttt{<<boundary>>} \\
+API Upload & Route API Next.js & \texttt{<<control>>} \\
+Vercel Blob & Service de stockage externe & \texttt{<<entity>>} \\
+Server Action & Logique métier (updateEntreprise) & \texttt{<<control>>} \\
+Base de données & Couche de persistance (PostgreSQL) & \texttt{<<entity>>} \\
+\bottomrule
+\end{tabular}
+\caption{Participants du DS-02}
+\end{table}
+
+\subsubsection{Déroulement séquentiel}
+
+\begin{tcolorbox}[colback=white,colframe=black!50,title=DS-02 — Mise à jour profil avec upload d'images]
+\small
+\begin{verbatim}
+Entreprise     Page Profil         API Upload       Vercel Blob     Server Action    Base de données
+  |                |                    |                |                |                |
+  |-- accéder      |                    |                |                |                |
+  |  /dashboard    |                    |                |                |                |
+  |  /profil ----->|                    |                |                |                |
+  |                |                    |                |                |                |
+  |                |-------- getSession() -------------------------------------->|        |
+  |                |<------- session {userId, role} ----------------------------|        |
+  |                |                    |                |                |                |
+  |                |-------- getMyEntreprise() -------------------------------->|        |
+  |                |<------- données entreprise existante ----------------------|        |
+  |                |                    |                |                |                |
+  |<-- formulaire  |                    |                |                |                |
+  |   pré-rempli --|                    |                |                |                |
+  |                |                    |                |                |                |
+  |-- modifier     |                    |                |                |                |
+  |  les champs -->|                    |                |                |                |
+  |                |                    |                |                |                |
+  |-- sélectionner |                    |                |                |                |
+  |  logo (fichier)|                    |                |                |                |
+  |  ------------->|                    |                |                |                |
+  |                |-- FileReader       |                |                |                |
+  |                |  .readAsDataURL()  |                |                |                |
+  |<-- aperçu      |                    |                |                |                |
+  |   local -------|                    |                |                |                |
+  |   (badge       |                    |                |                |                |
+  |  "Non sauvé")  |                    |                |                |                |
+  |                |                    |                |                |                |
+  |-- cliquer      |                    |                |                |                |
+  |  "Enregistrer" |                    |                |                |                |
+  |  ------------->|                    |                |                |                |
+  |                |                    |                |                |                |
+  |                |   [opt: logoFile !== null]          |                |                |
+  |                |-- POST /api/upload |                |                |                |
+  |                |  (FormData:fichier,|                |                |                |
+  |                |   type:"logo") --->|                |                |                |
+  |                |                    |-- vérifier     |                |                |
+  |                |                    |  session ------+--->  auth      |                |
+  |                |                    |<- OK ------<---|               |                |
+  |                |                    |-- valider type |                |                |
+  |                |                    |  et taille     |                |                |
+  |                |                    |-- put(fichier, |                |                |
+  |                |                    |  "logos/       |                |                |
+  |                |                    |   {userId}")-->|                |                |
+  |                |                    |                |-- stocker      |                |
+  |                |                    |                |   objet blob   |                |
+  |                |                    |                |                |                |
+  |                |                    |<-- {url:       |                |                |
+  |                |                    |  "https://     |                |                |
+  |                |                    |  blob.vercel.  |                |                |
+  |                |                    |  store/..."} --|                |                |
+  |                |                    |                |                |                |
+  |                |<-- {url} ---------|                |                |                |
+  |                |                    |                |                |                |
+  |                |   [fin opt]        |                |                |                |
+  |                |                    |                |                |                |
+  |                |-- updateEntreprise |                |                |                |
+  |                |  (id, formData,    |                |                |                |
+  |                |   {logoUrl}) -------------------------------------------->|           |
+  |                |                    |                |                |-- vérifier     |
+  |                |                    |                |                |  propriétaire  |
+  |                |                    |                |                |                |
+  |                |                    |                |                |-- UPDATE       |
+  |                |                    |                |                | entreprises    |
+  |                |                    |                |                | SET nom=...,   |
+  |                |                    |                |                | logo_url=... ->|
+  |                |                    |                |                |                |
+  |                |                    |                |                |<-- OK ---------|
+  |                |                    |                |                |                |
+  |                |<-- {success:true} -+-----------------------------------------|      |
+  |                |                    |                |                |                |
+  |<-- toast       |                    |                |                |                |
+  |  "Profil mis   |                    |                |                |                |
+  |   à jour !" ---|                    |                |                |                |
+  |                |                    |                |                |                |
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection{Fragments combinés}
+
+\begin{itemize}
+    \item \textbf{opt} [logoFile $\neq$ null] : L'upload vers Vercel Blob n'est déclenché \textit{que si} l'utilisateur a sélectionné un nouveau fichier image. Si aucun fichier n'est sélectionné, cette partie est ignorée.
+    \item \textbf{opt} [coverFile $\neq$ null] : Même logique pour l'image de couverture (exécuté séquentiellement après le logo).
+    \item \textbf{alt} [Fichier trop volumineux] : L'API Upload vérifie la taille (logo $\leq$ 2~Mo, couverture $\leq$ 5~Mo). Si le fichier dépasse la limite, une erreur 400 est renvoyée. Le toast affiche <<~Fichier trop volumineux~>>.
+    \item \textbf{alt} [Format non supporté] : Seuls les formats JPEG, PNG, WebP et GIF sont acceptés. Sinon, erreur 400.
+    \item \textbf{alt} [Upload échoue] : Si Vercel Blob renvoie une erreur (token invalide, réseau), le toast affiche l'erreur mais les \textit{champs texte} sont tout de même sauvegardés.
+\end{itemize}
+
+\begin{tcolorbox}[colback=blue!3!white,colframe=blue!50!black,title=Note méthodologique — Fragments combinés (Audibert)]
+\small
+Les \textbf{fragments combinés} (\texttt{alt}, \texttt{opt}, \texttt{loop}) sont des éléments structurels du diagramme de séquence UML 2.0 qui permettent de représenter les branchements conditionnels et les boucles \textit{au sein même du diagramme}, sans recourir à un diagramme d'activité séparé.
+
+\begin{itemize}
+    \item \textbf{alt} (alternative) : Équivalent d'un \texttt{if/else}. Chaque opérande est séparé par une ligne horizontale en pointillés avec sa garde entre crochets \texttt{[condition]}.
+    \item \textbf{opt} (optionnel) : Équivalent d'un \texttt{if} sans \texttt{else}. Le contenu n'est exécuté que si la garde est vraie.
+    \item \textbf{loop} (boucle) : Répétition tant que la condition est vraie.
+\end{itemize}
+Ces fragments remplacent avantageusement les multiples scénarios alternatifs textuels en les intégrant visuellement dans le flux principal.
+\end{tcolorbox}
+
 \end{document}
+

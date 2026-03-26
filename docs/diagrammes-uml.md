@@ -350,3 +350,179 @@ classDiagram
    - Relation one-to-many → `0..*` ou `1..*`
 
 4. **Stéréotypes** : Le `«include»` est utilisé pour les cas d'utilisation obligatoirement exécutés (ex: choisir son rôle fait partie intégrante de l'inscription). Le `«extend»` est utilisé pour les cas optionnels (ex: télécharger un logo lors de la gestion du profil).
+
+---
+
+## 4. Diagrammes de Séquence
+
+Le diagramme de séquence modélise les **interactions temporelles** entre les objets (participants) lors de l'exécution d'un scénario précis. Il met en évidence l'**ordre chronologique** des messages échangés.
+
+### 4.1 DS-01 : Inscription d'un utilisateur (scénario nominal)
+
+Ce diagramme décrit le processus complet d'inscription, depuis la saisie du formulaire jusqu'à la redirection.
+
+#### Participants
+
+| Participant | Type | Stéréotype |
+|-------------|------|------------|
+| **Visiteur** | Acteur principal | `«actor»` |
+| **Page Inscription** | Interface utilisateur | `«boundary»` |
+| **Contrôleur Auth** | Logique métier | `«control»` |
+| **Better-Auth** | Système d'authentification | `«control»` |
+| **Base de données** | Couche de persistance | `«entity»` |
+
+#### Diagramme
+
+```mermaid
+sequenceDiagram
+    actor V as Visiteur
+    participant PI as Page Inscription<br/>«boundary»
+    participant CA as Contrôleur Auth<br/>«control»
+    participant BA as Better-Auth<br/>«control»
+    participant BD as Base de données<br/>«entity»
+
+    V->>PI: accéder(/register)
+    PI-->>V: afficher formulaire (nom, email, mot de passe)
+
+    V->>PI: saisir(nom, email, motDePasse)
+    V->>PI: cliquer "Continuer"
+
+    PI->>CA: validerFormulaire(nom, email, mdp)
+
+    Note over CA: Validation Zod<br/>(schéma registerSchema)
+
+    alt Validation échoue
+        CA-->>PI: erreur("Champ invalide")
+        PI-->>V: afficher erreurs en rouge
+    else Validation OK
+        PI-->>V: afficher étape sélection rôle
+        V->>PI: choisir rôle ("entreprise")
+        V->>PI: cliquer "Créer mon compte"
+
+        PI->>CA: signUp(nom, email, mdp, role)
+        CA->>BA: auth.api.signUpEmail(nom, email, mdp, role)
+
+        BA->>BD: INSERT INTO users (id, nom, email, role, ...)
+        BD-->>BA: id utilisateur créé
+
+        BA->>BD: INSERT INTO sessions (id, token, userId, ...)
+        BD-->>BA: token de session
+
+        BA-->>CA: cookie HTTP-Only (session token)
+        CA-->>PI: {success: true}
+
+        PI-->>V: toast "Inscription réussie !"
+        PI->>V: redirection → /dashboard
+    end
+```
+
+#### Fragments combinés
+
+- **alt** `[Validation Zod échoue]` : Le contrôleur renvoie un message d'erreur. Le champ invalide s'affiche en rouge. Le flux s'arrête.
+- **alt** `[Email déjà existant]` : Better-Auth détecte un doublon dans la table `users` et renvoie « Cet email est déjà utilisé ».
+- **alt** `[Inscription via Google]` : Le visiteur clique « Continuer avec Google ». Le système redirige vers Google OAuth. Après retour, redirection vers `/select-role` pour choisir le rôle (via `updateUserRole`).
+
+---
+
+### 4.2 DS-02 : Mise à jour du profil entreprise avec upload d'images
+
+Ce diagramme décrit la modification du profil incluant le téléchargement d'un logo vers Vercel Blob.
+
+#### Participants
+
+| Participant | Type | Stéréotype |
+|-------------|------|------------|
+| **Entreprise** | Acteur principal | `«actor»` |
+| **Page Profil** | Interface React | `«boundary»` |
+| **API Upload** | Route API Next.js | `«control»` |
+| **Vercel Blob** | Stockage cloud | `«entity»` |
+| **Server Action** | Logique métier | `«control»` |
+| **Base de données** | PostgreSQL (Neon) | `«entity»` |
+
+#### Diagramme
+
+```mermaid
+sequenceDiagram
+    actor E as Entreprise
+    participant PP as Page Profil<br/>«boundary»
+    participant AU as API Upload<br/>«control»
+    participant VB as Vercel Blob<br/>«entity»
+    participant SA as Server Action<br/>«control»
+    participant BD as Base de données<br/>«entity»
+
+    E->>PP: accéder(/dashboard/profil)
+
+    PP->>SA: getSession()
+    SA->>BD: SELECT FROM sessions WHERE token = ?
+    BD-->>SA: session {userId, role}
+    SA-->>PP: session validée
+
+    PP->>SA: getMyEntreprise()
+    SA->>BD: SELECT FROM entreprises WHERE userId = ?
+    BD-->>SA: données entreprise existante
+    SA-->>PP: entreprise {nom, ville, logoUrl, ...}
+
+    PP-->>E: formulaire pré-rempli
+
+    E->>PP: modifier les champs (nom, description, ...)
+    E->>PP: sélectionner un logo (fichier image)
+
+    Note over PP: FileReader.readAsDataURL()<br/>→ aperçu local immédiat
+
+    PP-->>E: aperçu image + badge "Non sauvegardé"
+
+    E->>PP: cliquer "Enregistrer"
+
+    opt logoFile !== null
+        PP->>AU: POST /api/upload (FormData: fichier, type: "logo")
+
+        AU->>SA: vérifier session (auth)
+        SA-->>AU: session OK
+
+        Note over AU: Validation<br/>type MIME ∈ {jpeg, png, webp}<br/>taille ≤ 2 Mo
+
+        alt Fichier invalide
+            AU-->>PP: erreur 400 ("Fichier trop volumineux")
+            PP-->>E: toast erreur
+        else Fichier valide
+            AU->>VB: put(fichier, "logos/{userId}.ext")
+            VB-->>AU: {url: "https://blob.vercel-storage.com/..."}
+            AU-->>PP: {url: "https://..."}
+        end
+    end
+
+    PP->>SA: updateEntreprise(id, formData, {logoUrl})
+
+    SA->>BD: SELECT FROM entreprises WHERE id = ? AND userId = ?
+    BD-->>SA: entreprise trouvée (propriétaire vérifié)
+
+    SA->>BD: UPDATE entreprises SET nom=..., logo_url=... WHERE id = ?
+    BD-->>SA: OK (1 row updated)
+
+    SA-->>PP: {success: true}
+    PP-->>E: toast "Profil mis à jour !"
+```
+
+#### Fragments combinés
+
+- **opt** `[logoFile ≠ null]` : L'upload vers Vercel Blob n'est déclenché **que si** l'utilisateur a sélectionné un nouveau fichier. Sinon, cette partie est totalement ignorée.
+- **opt** `[coverFile ≠ null]` : Même logique pour l'image de couverture (exécuté séquentiellement après le logo).
+- **alt** `[Fichier trop volumineux]` : L'API vérifie la taille (logo ≤ 2 Mo, couverture ≤ 5 Mo). Si dépassement → erreur 400.
+- **alt** `[Format non supporté]` : Seuls JPEG, PNG, WebP et GIF sont acceptés. Sinon → erreur 400.
+- **alt** `[Upload échoue]` : Si Vercel Blob renvoie une erreur (token invalide), le toast affiche l'erreur mais les **champs texte sont tout de même sauvegardés**.
+
+---
+
+### 4.3 Notes méthodologiques — Fragments combinés (Audibert)
+
+Les **fragments combinés** (`alt`, `opt`, `loop`) sont des éléments structurels du diagramme de séquence UML 2.0 :
+
+| Fragment | Équivalent code | Description |
+|----------|----------------|-------------|
+| **alt** | `if / else` | Alternative : chaque opérande est séparé par une ligne en pointillés avec sa garde `[condition]` |
+| **opt** | `if` (sans else) | Optionnel : le contenu n'est exécuté que si la garde est vraie |
+| **loop** | `while` / `for` | Boucle : répétition tant que la condition est vraie |
+| **par** | `Promise.all()` | Parallèle : les fragments s'exécutent simultanément |
+
+> Ces fragments remplacent avantageusement les multiples scénarios alternatifs textuels en les intégrant **visuellement** dans le flux principal du diagramme.
+
